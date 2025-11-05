@@ -2,10 +2,11 @@ import subprocess
 
 
 def display_message(chord: str, triggers: list[str]):
-    command = "notify-send"
+    popup_time_in_milliseconds = "4000"
+    command = 'notify-send'
     title = "possible missed chord"
     message = f'you could have typed: {triggers}\n to type "{chord}" '
-    subprocess.run([command, title, message])
+    subprocess.run([command, '-t', popup_time_in_milliseconds, title, message])
 
 
 # for testing
