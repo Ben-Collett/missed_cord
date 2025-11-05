@@ -1,6 +1,10 @@
 import json
 
 
+def uncapitalize(s: str) -> str:
+    return s[:1].lower() + s[1:]
+
+
 def load_json() -> dict:
     with open("chords.json", "r") as file:
         data = json.load(file)
@@ -43,7 +47,7 @@ def ascii_only(data: dict) -> dict[frozenset[str], str]:
         output = _to_str(pair[1])
         if not output:
             continue
-        out[frozenset(trig.lower())] = output.lower()
+        out[frozenset(trig.lower())] = uncapitalize(output)
     return out
 
 

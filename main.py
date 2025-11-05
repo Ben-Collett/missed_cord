@@ -98,6 +98,13 @@ def main():
             return
 
         is_shift = keyboard_utils.is_shift(code)
+        if is_shift and pressed_key:
+            shift_counter += 1
+            xkb.setShiftModifier(True)
+        elif is_shift and released_key:
+            shift_counter -= 1
+            if shift_counter == 0:
+                xkb.setShiftModifier(False)
         if is_shift and (pressed_key or held_key):
             just_shifted = True
         elif is_shift and just_shifted:
@@ -148,8 +155,8 @@ def main():
 
                     # print(queue, behind_is_space, tmp,
                     #      tmp in reversed_chords.keys())
-                    if tmp in reversed_chords.keys() and behind_is_space:
-                        inputs = reversed_chords[tmp]
+                    if utils.uncapitalize(tmp) in reversed_chords.keys() and behind_is_space:
+                        inputs = reversed_chords[utils.uncapitalize(tmp)]
                         options = sets_to_string(inputs)
                         config.display_message(tmp, options)
 
