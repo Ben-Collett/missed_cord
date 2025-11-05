@@ -34,7 +34,7 @@ def _to_str(input: list[int]) -> str | None:
 
 
 def ascii_only(data: dict) -> dict[frozenset[str], str]:
-    # format: key combinations are stored as a list of integers, with 0 to fix there lenght I think atleast for the input part
+    # format: key combinations are stored as a list of integers, with 0 to fix there length I think atleast for the input part
     # these are stored in a list with two elements the trigger followed by the output
     # these are then all stored in the list of chords
     chords: list[list[list[int]]] = data["chords"]
