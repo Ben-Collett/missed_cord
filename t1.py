@@ -48,6 +48,8 @@ def main():
     backspace_queue = deque()
 
     probably_chording = False
+
+    prev_chord = ""
     probably_chording_string = ""
     expected_chording_string = ""
 
@@ -57,6 +59,7 @@ def main():
         nonlocal probably_chording
         nonlocal expected_chording_string
         nonlocal probably_chording_string
+        nonlocal prev_chord
 
         code = event.code
         pressed_key = event.value == 1
@@ -68,8 +71,6 @@ def main():
         # TODO: shift,both ways
 
         if code == evdev.ecodes.KEY_BACKSPACE and (pressed_key or held_key):
-            print(queue)
-            print(backspace_queue)
             if len(queue) > 0:
                 backspace_queue.append(queue.pop())
                 if frozenset(backspace_queue) in chords.keys():
@@ -105,10 +106,11 @@ def main():
                         break
                     tmp = queue[-i]+tmp
                     behind_is_space = True  # default to true if the buffer is to small
-                    if i+1 < len(queue):
+                    if i+1 <= len(queue):
                         behind_is_space = queue[-i-1] == " "
 
-                    print(queue, behind_is_space, tmp)
+                    # print(queue, behind_is_space, tmp,
+                    #      tmp in reversed_chords.keys())
                     if tmp in reversed_chords.keys() and behind_is_space:
                         inputs = reversed_chords[tmp]
                         options = sets_to_string(inputs)
@@ -116,6 +118,8 @@ def main():
 
             # auto handles stopping when typign space
             if not expected_chording_string.startswith(probably_chording_string):
+                if expected_chording_string == probably_chording_string.strip():
+                    prev_chord = expected_chording_string
                 probably_chording_string = ""
                 expected_chording_string = ""
                 probably_chording = False
