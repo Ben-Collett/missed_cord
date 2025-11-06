@@ -6,6 +6,9 @@ A Linux-only program designed to work alongside a Charachorder keyboard when pra
 
 Missed Cord detects when you type the output of a chord manually instead of using the chord shortcut. When this happens, it sends a notification showing what chord you could have used to type that text, helping you learn and improve your chord typing skills.
 
+## Disclaimer 
+This project has no affilination with charachorder as a company. This project is simply devloped and maintained by someone who is trying to get good at using a charachorder.
+
 ## Requirements
 
 ### System Dependencies
