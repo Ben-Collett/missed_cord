@@ -69,6 +69,7 @@ def main():
         nonlocal just_shifted
         nonlocal bc
 
+        print(queue)
         code = event.code
         pressed_key = event.value == 1
         held_key = event.value == 2
@@ -141,7 +142,10 @@ def main():
         if utf is not None and utf.isprintable():
             queue.append(utf)
             if probably_chording:
-                probably_chording_string += utf
+                if len(probably_chording_string) == 0:
+                    probably_chording_string = utf.lower()
+                else:
+                    probably_chording_string += utf
             elif keyboard_utils.is_space(code):
                 tmp = ""
                 # using 2 because need to skip the first element in the negative direction which is always a " "

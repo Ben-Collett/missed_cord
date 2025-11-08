@@ -9,7 +9,6 @@ keyboard_like = {
 }
 
 
-# WARNING: doesn't register devices grabbed by another program
 def _regiseter_devices() -> selectors.DefaultSelector:
     sel = selectors.DefaultSelector()
 
