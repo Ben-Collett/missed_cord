@@ -69,7 +69,6 @@ def main():
         nonlocal just_shifted
         nonlocal bc
 
-        print(queue)
         code = event.code
         pressed_key = event.value == 1
         held_key = event.value == 2
@@ -157,8 +156,6 @@ def main():
                     if i+1 <= len(queue):
                         behind_is_space = queue[-i-1] == " "
 
-                    # print(queue, behind_is_space, tmp,
-                    #      tmp in reversed_chords.keys())
                     if utils.uncapitalize(tmp) in reversed_chords.keys() and behind_is_space:
                         inputs = reversed_chords[utils.uncapitalize(tmp)]
                         options = sets_to_string(inputs)
