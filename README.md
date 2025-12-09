@@ -7,14 +7,12 @@ A Linux-only program designed to work alongside a Charachorder keyboard when pra
 Missed Cord detects when you type the output of a chord manually instead of using the chord shortcut. When this happens, it sends a notification showing what chord you could have used to type that text, helping you learn and improve your chord typing skills.
 
 ## Disclaimer 
-This project has no affilination with charachorder as a company. This project is simply devloped and maintained by someone who is trying to get good at using a charachorder.
+This project has no affilination with charachorder as a company. This project is simply developed and maintained by someone who is trying to get good at using a charachorder.
 
 ## Requirements
 
 ### System Dependencies
 - **Linux** (Wayland support)
-- **make** - For building the C code
-- **gcc** - C compiler
 - **libxkbcommon** - Keyboard handling library
 - **notify-send** - Desktop notification utility
 - **Notification daemon** - Such as:
@@ -24,8 +22,6 @@ This project has no affilination with charachorder as a company. This project is
 
 ### Python Dependencies
 - **Python 3**
-- **evdev** - Python library for input device access
-- **python-evdev** - Python bindings for evdev
 
 ## Installation
 
@@ -112,7 +108,11 @@ The program handles this by running as a regular user and only using `sudo` for 
 - **Permission denied**: Make sure you're running the program as a regular user (not with `sudo`) and enter the password when prompted
 - **chords.json not found**: Ensure you've exported your chord library from Charachorder Manager and placed it in the project directory as `chords.json`
 
+##Roadmap
+- add support for windows notifications
+- add ability to read chords directly from charachorder if enabled,
+
 ## License
-This project is licensed under [The Unlicense](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details
 
 
