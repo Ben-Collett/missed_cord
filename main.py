@@ -1,9 +1,7 @@
 import subprocess
 import utils
-import evdev
-from xkbwrapper import XKBWrapper
-from collections import deque
 import keyboard_utils
+from collections import deque
 import config
 
 
@@ -29,14 +27,12 @@ def sets_to_string(sets: list[frozenset[str]]) -> list[str]:
 
 
 class Event:
-    def __init__(self, code, value):
-        self.code = int(code)
-        self.value = int(value)
+    def __init__(self, name: str, value: str):
+        self.name: str = name
+        self.value: int = int(value)
 
 
 def main():
-    xkb = XKBWrapper()
-
     shift_counter = 0
     meta_counter = 0
 
@@ -69,15 +65,20 @@ def main():
         nonlocal just_shifted
         nonlocal bc
 
-        code = event.code
+        name: str = event.name
         pressed_key = event.value == 1
-        held_key = event.value == 2
-        pressed_or_held_key = pressed_key or held_key
+        pressed_or_held_key = pressed_key
         released_key = event.value == 0
+        is_space = keyboard_utils.is_space(name)
 
-        is_backspace = evdev.ecodes.KEY_BACKSPACE == code
-        xkb_code = code + 8
-        utf = xkb.translateKeycode(xkb_code)
+        is_backspace = event.name == "backspace"
+        utf = None
+        if len(event.name) == 1:
+            utf = event.name
+            if shift_counter > 0:
+                utf = utf.upper()
+        if is_space:
+            utf = " "
 
         if is_backspace and released_key:
             return
@@ -94,18 +95,15 @@ def main():
             changing_case = False
             if utf is not None:
                 backspace_counter -= 1
-                queue.append(xkb.translateKeycode(xkb_code))
+                queue.append(utf)
             return
 
-        is_shift = keyboard_utils.is_shift(code)
+        is_shift = keyboard_utils.is_shift(name)
         if is_shift and pressed_key:
             shift_counter += 1
-            xkb.setShiftModifier(True)
         elif is_shift and released_key:
             shift_counter -= 1
-            if shift_counter == 0:
-                xkb.setShiftModifier(False)
-        if is_shift and (pressed_key or held_key):
+        if is_shift and pressed_or_held_key:
             just_shifted = True
         elif is_shift and just_shifted:
             changing_case = True
@@ -113,10 +111,10 @@ def main():
         else:
             just_shifted = False
 
-        is_meta = keyboard_utils.is_meta(code)
+        is_meta = keyboard_utils.is_meta(name)
         # TODO: shift,both ways
 
-        if code == evdev.ecodes.KEY_BACKSPACE and (pressed_key or held_key):
+        if is_backspace and pressed_or_held_key:
             if len(queue) > 0:
                 backspace_queue.append(queue.pop())
                 if frozenset(backspace_queue) in chords.keys():
@@ -125,7 +123,7 @@ def main():
                         backspace_queue)]
                 return
 
-        if code != evdev.ecodes.KEY_BACKSPACE and (pressed_key or held_key):
+        if (not is_backspace) and pressed_or_held_key:
             backspace_queue.clear()
         if is_meta and pressed_key:
             meta_counter += 1
@@ -134,7 +132,7 @@ def main():
 
         if released_key:
             return
-        if meta_counter > 0 or keyboard_utils.is_arrow(code):
+        if meta_counter > 0 or keyboard_utils.is_arrow(name):
             queue.clear()
             return
 
@@ -145,7 +143,7 @@ def main():
                     probably_chording_string = utf.lower()
                 else:
                     probably_chording_string += utf
-            elif keyboard_utils.is_space(code):
+            elif keyboard_utils.is_space(name):
                 tmp = ""
                 # using 2 because need to skip the first element in the negative direction which is always a " "
                 for i in range(2, max_output_length+1):
