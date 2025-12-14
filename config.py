@@ -1,27 +1,18 @@
-import subprocess
+import platform
+import os
+# TODO: read a config file
 
 
-missed_chords: dict[str, int] = {}
+def update_from_file():
+    pass
 
 
-def display_message(chord: str, triggers: list[str]):
-    popup_time_in_milliseconds = "4000"
-    command = 'notify-send'
-    title = "possible missed chord"
-    message = f'you could have typed: {triggers}\n to type "{chord}" '
-    if message not in missed_chords:
-        missed_chords[message] = 0
-    missed_chords[message] += 1
-    _print_map()
-    subprocess.run([command, '-t', popup_time_in_milliseconds, title, message])
+def is_on_wayland():
+    return os.environ.get("WAYLAND_DISPLAY") is not None
 
 
-def _print_map():
-    for k, v in missed_chords.items():
-        print(k, v)
-    print("-------------------------------")
+qt_mode = not is_on_wayland()
 
-
-# for testing
-if __name__ == "__main__":
-    display_message("that", ["th", "tg"])
+DEFAULT_MAX_QT_NOTIFICATIONS = 3
+# if <0 then there is no maximum
+max_qt_notifications = DEFAULT_MAX_QT_NOTIFICATIONS

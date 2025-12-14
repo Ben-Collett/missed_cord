@@ -1,16 +1,23 @@
 import keyboard
+import sys
 
 
 def output_event(event: keyboard.KeyboardEvent):
     value = 0
     if event.event_type == keyboard.KEY_DOWN:
         value = 1
-    print(event.name, value)
+    print(event.name, value, flush=True)
 
 
 def main():
     keyboard.hook(output_event)
-    keyboard.wait()
+    try:
+        keyboard.wait()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        keyboard.unhook_all()
+        sys.exit(0)
 
 
 if __name__ == "__main__":

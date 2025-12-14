@@ -1,8 +1,8 @@
-import subprocess
 import utils
+from my_key_event import MyKeyEvent
 import keyboard_utils
 from collections import deque
-import config
+import send_notification
 
 
 def reverse_dict(d: dict):
@@ -26,13 +26,7 @@ def sets_to_string(sets: list[frozenset[str]]) -> list[str]:
     return out
 
 
-class Event:
-    def __init__(self, name: str, value: str):
-        self.name: str = name
-        self.value: int = int(value)
-
-
-def main():
+def main(key_itr: iter, running_flag=utils.ValueWrapper(True)):
     shift_counter = 0
     meta_counter = 0
 
@@ -157,7 +151,7 @@ def main():
                     if utils.uncapitalize(tmp) in reversed_chords.keys() and behind_is_space:
                         inputs = reversed_chords[utils.uncapitalize(tmp)]
                         options = sets_to_string(inputs)
-                        config.display_message(tmp, options)
+                        send_notification.display_message(tmp, options)
 
             # auto handles stopping when typign space
             if not expected_chording_string.startswith(probably_chording_string):
@@ -167,30 +161,9 @@ def main():
                 expected_chording_string = ""
                 probably_chording = False
 
-    # Start the subprocess
-    # `text=True` gives you strings instead of bytes
-    # `bufsize=1` + `universal_newlines=True` ensures line-buffered reading
-    proc = subprocess.Popen(
-        ["sudo", "python", "-u", "key_board_process.py"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-    )
-
     # Process output line by line as it arrives
-    try:
-        for line in proc.stdout:
-            event = Event(*line.strip().split(" "))
-            process_event(event)
-
-    except KeyboardInterrupt:
-        print("Interrupted, terminating subprocess…")
-        proc.terminate()
-
-    # Optionally wait for subprocess to end (won’t block forever if it runs indefinitely)
-    proc.wait()
-
-
-if __name__ == "__main__":
-    main()
+    for line in key_itr:
+        if not running_flag.value:
+            break
+        event = MyKeyEvent(*line.strip().split(" "))
+        process_event(event)

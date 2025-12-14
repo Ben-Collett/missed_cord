@@ -1,6 +1,11 @@
 import json
 
 
+class ValueWrapper:
+    def __init__(self, value):
+        self.value = value
+
+
 def uncapitalize(s: str) -> str:
     return s[:1].lower() + s[1:]
 
