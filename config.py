@@ -1,4 +1,3 @@
-import platform
 import os
 # TODO: read a config file
 

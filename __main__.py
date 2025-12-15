@@ -4,39 +4,53 @@ import config
 import subprocess
 import queue
 from my_key_event import MyKeyEvent, TERMINATE_EVENT
-
 import threading
-
+import keyboard
+import platform
 # Start the subprocess
 # `text=True` gives you strings instead of bytes
 # `bufsize=1` + `universal_newlines=True` ensures line-buffered reading
-proc = subprocess.Popen(
-    ["sudo", "python", "-u", "key_board_process.py"],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.STDOUT,
-    text=True,
-    bufsize=1,
-)
+
+proc_keyreader_needed = platform.platform() == "Linux"
 
 key_queue = queue.Queue()
 
-proc_keyreader_needed = True
+
+def add_to_queue(event: keyboard.KeyboardEvent):
+    value = 0
+    if event.event_type == keyboard.KEY_DOWN:
+        value = 1
+    my_event = MyKeyEvent(event.name, value)
+    key_queue.put_nowait(my_event)
 
 
-def read_keys_linux():
-    for line in proc.stdout:
-        key_queue.put_nowait(MyKeyEvent(*line.strip().split(" ")))
+proc = None
+if proc_keyreader_needed:
+    proc = subprocess.Popen(
+        ["sudo", "python", "-u", "key_board_process.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
 
+    def read_keys_linux():
+        for line in proc.stdout:
+            key_queue.put_nowait(MyKeyEvent(*line.strip().split(" ")))
 
-key_reader = threading.Thread(target=read_keys_linux)
-key_reader.start()
+    key_reader = threading.Thread(target=read_keys_linux)
+    key_reader.start()
+else:
+    keyboard.hook(add_to_queue)
 
 
 def kill_key_reader():
+    key_queue.put_nowait(TERMINATE_EVENT)
     if proc:
         proc.terminate()
-    key_queue.put_nowait(TERMINATE_EVENT)
-    key_reader.join()
+        key_reader.join()
+    else:
+        keyboard.unhook_all()
 
 
 if config.qt_mode:

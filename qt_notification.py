@@ -70,13 +70,13 @@ class QtNotification(QtWidgets.QWidget):
         # ---------------- TITLE ----------------
         self.title_label = QtWidgets.QLabel(title, self.container)
         self.title_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold;"
+            "font-size: 24px; font-weight: bold; color:white;"
         )
 
         # ---------------- CONTENT ----------------
         self.content_label = QtWidgets.QLabel(content, self.container)
         self.content_label.setStyleSheet(
-            "font-size: 18px;"
+            "font-size: 18px;color:white;"
         )
 
         # ---------------- CLOSE BUTTON ----------------
