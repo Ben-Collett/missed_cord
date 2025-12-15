@@ -9,9 +9,9 @@ class MainWorker(QtCore.QThread):
         self.running = ValueWrapper(True)
 
     def run(self):
-        import main
+        import key_event_loop
         # pass selfso it will test if running
-        main.main(self.key_itr, running_flag=self.running)
+        key_event_loop.key_loop(self.key_itr, running_flag=self.running)
 
     def stop(self):
         self.running.value = False

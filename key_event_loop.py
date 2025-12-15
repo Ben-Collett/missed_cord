@@ -1,8 +1,9 @@
 import utils
-from my_key_event import MyKeyEvent
+from my_key_event import TERMINATE_EVENT
 import keyboard_utils
 from collections import deque
 import send_notification
+from queue import Queue
 
 
 def reverse_dict(d: dict):
@@ -26,7 +27,7 @@ def sets_to_string(sets: list[frozenset[str]]) -> list[str]:
     return out
 
 
-def main(key_itr: iter, running_flag=utils.ValueWrapper(True)):
+def key_loop(key_queue: Queue, running_flag=utils.ValueWrapper(True)):
     shift_counter = 0
     meta_counter = 0
 
@@ -162,8 +163,8 @@ def main(key_itr: iter, running_flag=utils.ValueWrapper(True)):
                 probably_chording = False
 
     # Process output line by line as it arrives
-    for line in key_itr:
-        if not running_flag.value:
+    while True:
+        event = key_queue.get()
+        if event == TERMINATE_EVENT:
             break
-        event = MyKeyEvent(*line.strip().split(" "))
         process_event(event)

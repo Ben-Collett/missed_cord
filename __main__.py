@@ -2,7 +2,10 @@ import sys
 import signal
 import config
 import subprocess
+import queue
+from my_key_event import MyKeyEvent, TERMINATE_EVENT
 
+import threading
 
 # Start the subprocess
 # `text=True` gives you strings instead of bytes
@@ -15,6 +18,27 @@ proc = subprocess.Popen(
     bufsize=1,
 )
 
+key_queue = queue.Queue()
+
+proc_keyreader_needed = True
+
+
+def read_keys_linux():
+    for line in proc.stdout:
+        key_queue.put_nowait(MyKeyEvent(*line.strip().split(" ")))
+
+
+key_reader = threading.Thread(target=read_keys_linux)
+key_reader.start()
+
+
+def kill_key_reader():
+    if proc:
+        proc.terminate()
+    key_queue.put_nowait(TERMINATE_EVENT)
+    key_reader.join()
+
+
 if config.qt_mode:
 
     from PySide6 import QtWidgets, QtCore
@@ -25,14 +49,13 @@ if config.qt_mode:
     app = QtWidgets.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-    # 🔁 Allow SIGINT processing
     sigint_timer = QtCore.QTimer()
     sigint_timer.start(100)
     sigint_timer.timeout.connect(lambda: None)
-    worker = MainWorker(proc.stdout)
+    worker = MainWorker(key_queue)
 
     def handle_sigint(sig, frame):
-        proc.terminate()
+        kill_key_reader()
         worker.wait()
         app.quit()
 
@@ -46,5 +69,9 @@ if config.qt_mode:
     sys.exit(app.exec())
 
 else:
-    from main import main
-    main(proc.stdout)
+    from key_event_loop import key_loop
+
+    try:
+        key_loop(key_queue)
+    except KeyboardInterrupt:
+        kill_key_reader()
