@@ -29,7 +29,8 @@ class QtNotification(QtWidgets.QWidget):
         # Frameless + always on top
         self.setWindowFlags(
             QtCore.Qt.FramelessWindowHint |
-            QtCore.Qt.WindowStaysOnTopHint
+            QtCore.Qt.WindowStaysOnTopHint |
+            QtCore.Qt.Tool
         )
 
         # ---------------- CONTAINER ----------------

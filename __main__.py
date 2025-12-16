@@ -11,7 +11,8 @@ import platform
 # `text=True` gives you strings instead of bytes
 # `bufsize=1` + `universal_newlines=True` ensures line-buffered reading
 
-proc_keyreader_needed = platform.platform() == "Linux"
+# will need on x11 until I can handle key input in user space becace breaks qt theming
+proc_keyreader_needed = platform.system() == "Linux"  # and not config.qt_mode
 
 key_queue = queue.Queue()
 
