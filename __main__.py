@@ -1,6 +1,6 @@
 import sys
 import signal
-import config
+from config import current_config
 import subprocess
 import queue
 from my_key_event import MyKeyEvent, TERMINATE_EVENT
@@ -54,7 +54,7 @@ def kill_key_reader():
         keyboard.unhook_all()
 
 
-if config.qt_mode:
+if current_config.qt_mode:
 
     from PySide6 import QtWidgets, QtCore
     from qt_notification_manager import QTNotificationManager

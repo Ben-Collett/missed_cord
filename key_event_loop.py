@@ -94,10 +94,11 @@ def key_loop(key_queue: Queue, running_flag=utils.ValueWrapper(True)):
             return
 
         is_shift = keyboard_utils.is_shift(name)
-        if is_shift and pressed_key:
+        if is_shift and pressed_or_held_key and not just_shifted:
             shift_counter += 1
         elif is_shift and released_key:
             shift_counter -= 1
+
         if is_shift and pressed_or_held_key:
             just_shifted = True
         elif is_shift and just_shifted:

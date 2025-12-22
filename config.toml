@@ -1,0 +1,23 @@
+#general notification config(not qt specific)
+[notification]
+title = "possible missed chord"
+message = "$triggers = $chord, baka"
+mode = "auto" #auto, notify,qt, auto is the default and recommended, the only reason to change this is you might want to use notify mode if you are using an x11 tilling window  manger
+
+#only one of the duration fields should be present, if both are present the milliseconds will override the seconds, defaults to 4 seconds
+# duration_milliseconds = 4000 
+duration_seconds = 6 
+
+
+#filters out triggers and chords
+[filter]
+excluded_chords = ["have", "I"]
+
+#qt notification specific settings
+[qt]
+duration_height = 8# height of duration bar set to 0 to hide, default = 8
+max_notifications = 4 #if <= 0 then unlimited, defaults to three
+window_width =  400 #defaults to 400
+window_height = 100 #defaults to 100
+
+

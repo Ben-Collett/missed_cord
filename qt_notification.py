@@ -1,12 +1,22 @@
-
+from config import current_config
 import sys
 from PySide6 import QtCore, QtWidgets
 
-WINDOW_WIDTH = 400
-WINDOW_HEIGHT = 100
+
+def window_width():
+    return current_config.window_width
+
+
+def window_height():
+    return current_config.window_height
+
+
+def duration_height():
+    return current_config.duration_height
+
+
 PADDING = 15
 WINDOW_GAP = 5
-PROGRESS_HEIGHT = 4
 TICK_MS = 30
 
 
@@ -36,7 +46,7 @@ class QtNotification(QtWidgets.QWidget):
         # ---------------- CONTAINER ----------------
         self.container = QtWidgets.QWidget(self)
         self.container.setObjectName("container")
-        self.container.setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.container.setGeometry(0, 0, window_width(), window_height())
 
         self.container.setStyleSheet("""
             #container {
@@ -143,9 +153,9 @@ class QtNotification(QtWidgets.QWidget):
 
         self.progress.setGeometry(
             PADDING,
-            self.height() - PROGRESS_HEIGHT - 6,
+            self.height() - duration_height() - 6,
             self.width() - 2 * PADDING,
-            PROGRESS_HEIGHT
+            duration_height()
         )
 
         super().resizeEvent(event)
@@ -156,8 +166,11 @@ class QtNotification(QtWidgets.QWidget):
         geometry = screen.availableGeometry()
 
         margin = 2
-        x = geometry.right() - WINDOW_WIDTH - margin
-        y = geometry.top() + margin + number_before * (WINDOW_HEIGHT + WINDOW_GAP)
+        width = window_width()
+        height = window_height()
+        x = geometry.right() - width - margin
+        top = geometry.top()
+        y = top + margin + number_before * (height + WINDOW_GAP)
 
         self.move(x, y)
 
@@ -170,7 +183,7 @@ if __name__ == "__main__":
         "[th, t`] = than",
         duration_ms=4000
     )
-    w1.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    w1.resize(window_width(), window_height())
     w1.update_position(0)
     w1.show()
 
@@ -179,7 +192,7 @@ if __name__ == "__main__":
         "[to] = to",
         duration_ms=7000
     )
-    w2.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    w2.resize(window_width(), window_height())
     w2.update_position(1)
     w2.show()
 

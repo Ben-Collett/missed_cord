@@ -1,28 +1,31 @@
-
+from utils import uncapitalize
 import subprocess
-import config
+from config import current_config
 
 missed_chords: dict[str, int] = {}
 
-if config.qt_mode:
+if current_config.qt_mode:
     from qt_bridge import bridge
 
 
 def display_message(chord: str, triggers: list[str]):
-    title = "possible missed chord"
-    message = f'{triggers} = "{chord}" '
+    if uncapitalize(chord) in current_config.excluded_chords:
+        return
+
+    title = current_config.notification_title
+    message = current_config.notification_message(triggers, chord)
 
     if message not in missed_chords:
         missed_chords[message] = 0
     missed_chords[message] += 1
     _print_map()
 
-    if config.qt_mode:
-        # 🔥 THREAD-SAFE
+    if current_config.qt_mode:
         bridge.notify.emit(title, message)
     else:
         subprocess.run(
-            ['notify-send', '-t', '4000', title, message]
+            ['notify-send', '-t',
+                str(int(current_config.duration.milliseconds)), title, message]
         )
 
 
