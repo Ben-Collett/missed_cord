@@ -3,6 +3,8 @@ import os
 from utils import uncapitalize
 from duration import Duration
 from platform_wrapper import Platform, FILE_NAME
+from chording_modes import ChordingModes
+from logger import log_warning
 from pathlib import Path
 
 
@@ -71,6 +73,9 @@ class Config:
         return self.notification_message_template.replace("$triggers", str(triggers)).replace("$chord", message)
 
     def update_config(self, config_map):
+        def general_setting(label, default):
+            return safe_get_map(config_map, "general", label, default=default)
+
         def qt_setting(label, default):
             return safe_get_map(config_map, "qt", label, default=default)
 
@@ -107,7 +112,7 @@ class Config:
         elif mode == "auto":
             self.qt_mode = not is_on_wayland()
         else:
-            print("invalid mode selected, defaulting to auto")
+            log_warning("invalid mode selected, defaulting to auto")
             self.qt_mode = not is_on_wayland()
 
         self.notification_title = notification_setting(
@@ -119,13 +124,18 @@ class Config:
         self.window_height = qt_setting("window_height", DEFAULT_WINDOW_HEIGHT)
         self.duration_height = qt_setting(
             "duration_height", DEFAULT_DURATION_HEIGHT)
+        mode = general_setting("mode", "charachorder")
+        try:
+            self.mode = ChordingModes(mode)
+        except ValueError:
+            log_warning("invalid mode, defaulting to charachorder")
+            self.mode = ChordingModes.CHARA_CHORDER
 
     def __str__(self):
         lines = "\n".join(f"  {k}: {v!r}" for k, v in vars(self).items())
         return f"{self.__class__.__name__} {{\n{lines}\n}}"
 
 
-print(get_config_path())
 current_config = Config(read_config(get_config_path()))
 
 if __name__ == "__main__":

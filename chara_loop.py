@@ -1,0 +1,150 @@
+import utils
+from my_key_event import TERMINATE_EVENT
+import keyboard_utils
+from collections import deque
+import send_notification
+from queue import Queue
+
+
+def chara_key_loop(key_queue: Queue):
+    shift_counter = 0
+    meta_counter = 0
+
+    json = utils.load_json()
+    chords = utils.ascii_only(json)
+    reversed_chords = utils.reverse_dict(chords)
+    max_output_length = max(map(len, chords.values()))
+    queue = deque(maxlen=max_output_length+1)
+    backspace_queue = deque()
+
+    probably_chording = False
+
+    prev_chord = ""
+    probably_chording_string = ""
+    expected_chording_string = ""
+    just_shifted = False
+    changing_case = False
+    backspace_counter = 0
+    bc = 0
+
+    def process_event(event):
+        nonlocal shift_counter
+        nonlocal meta_counter
+        nonlocal backspace_counter
+        nonlocal probably_chording
+        nonlocal expected_chording_string
+        nonlocal probably_chording_string
+        nonlocal prev_chord
+        nonlocal changing_case
+        nonlocal just_shifted
+        nonlocal bc
+
+        name: str = event.name
+        pressed_key = event.value == 1
+        pressed_or_held_key = pressed_key
+        released_key = event.value == 0
+        is_space = keyboard_utils.is_space(name)
+
+        is_backspace = event.name == "backspace"
+        utf = None
+        if len(event.name) == 1:
+            utf = event.name
+            if shift_counter > 0:
+                utf = utf.upper()
+        if is_space:
+            utf = " "
+
+        if is_backspace and released_key:
+            return
+        if is_backspace and changing_case and pressed_or_held_key:
+            backspace_counter += 1
+            if backspace_counter > len(prev_chord)+1:
+                backspace_counter = 0
+                changing_case = False
+            if len(queue) > 0:
+                queue.pop()
+            return
+        if backspace_counter > 0:
+            backspace_queue.clear()
+            changing_case = False
+            if utf is not None:
+                backspace_counter -= 1
+                queue.append(utf)
+            return
+
+        is_shift = keyboard_utils.is_shift(name)
+        if is_shift and pressed_or_held_key and not just_shifted:
+            shift_counter += 1
+        elif is_shift and released_key:
+            shift_counter -= 1
+
+        if is_shift and pressed_or_held_key:
+            just_shifted = True
+        elif is_shift and just_shifted:
+            changing_case = True
+            just_shifted = False
+        else:
+            just_shifted = False
+
+        is_meta = keyboard_utils.is_meta(name)
+        # TODO: shift,both ways
+
+        if is_backspace and pressed_or_held_key:
+            if len(queue) > 0:
+                backspace_queue.append(queue.pop())
+                if frozenset(backspace_queue) in chords.keys():
+                    probably_chording = True
+                    expected_chording_string = chords[frozenset(
+                        backspace_queue)]
+                return
+
+        if (not is_backspace) and pressed_or_held_key:
+            backspace_queue.clear()
+        if is_meta and pressed_key:
+            meta_counter += 1
+        elif is_meta and released_key:
+            meta_counter -= 1
+
+        if released_key:
+            return
+        if meta_counter > 0 or keyboard_utils.is_arrow(name):
+            queue.clear()
+            return
+
+        if utf is not None and utf.isprintable():
+            queue.append(utf)
+            if probably_chording:
+                if len(probably_chording_string) == 0:
+                    probably_chording_string = utf.lower()
+                else:
+                    probably_chording_string += utf
+            elif keyboard_utils.is_space(name):
+                tmp = ""
+                # using 2 because need to skip the first element in the negative direction which is always a " "
+                for i in range(2, max_output_length+1):
+                    if i > len(queue):
+                        break
+                    tmp = queue[-i]+tmp
+                    behind_is_space = True  # default to true if the buffer is to small
+                    if i+1 <= len(queue):
+                        behind_is_space = queue[-i-1] == " "
+
+                    if utils.uncapitalize(tmp) in reversed_chords.keys() and behind_is_space:
+                        inputs = reversed_chords[utils.uncapitalize(tmp)]
+                        options = utils.sets_to_string(inputs)
+                        send_notification.display_message(tmp, options)
+
+            # auto handles stopping when typign space
+            if not expected_chording_string.startswith(probably_chording_string):
+                if expected_chording_string == probably_chording_string.strip():
+                    prev_chord = expected_chording_string
+                probably_chording_string = ""
+                expected_chording_string = ""
+                probably_chording = False
+
+    # Process output line by line as it arrives
+    while True:
+        event = key_queue.get()
+        if event == TERMINATE_EVENT:
+            break
+        process_event(event)

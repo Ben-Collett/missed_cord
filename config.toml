@@ -1,4 +1,9 @@
 #general notification config(not qt specific)
+[general]
+#used to set between "charachorder" mode and "fuzzy chips", later will support different chording methods in charachroder,defaults to charachorder
+#if using charachorder mode will parse chords.json file to get chords 
+#if in "fuzzy chips" mode will parse chips.toml which should be your entire fuzzy chips config
+mode = "fuzzy chips"
 [notification]
 title = "possible missed chord"
 message = "$triggers = $chord, baka"
