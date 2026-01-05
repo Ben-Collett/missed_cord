@@ -1,10 +1,17 @@
 import json
 import tomllib
+import os
+from config_manager import ConfigManager
+from my_config_manager import config_manager
 
 
 class ValueWrapper:
     def __init__(self, value):
         self.value = value
+
+
+def _file_exist(path):
+    return os.path.exists(path)
 
 
 def reverse_dict(d: dict):
@@ -33,14 +40,46 @@ def uncapitalize(s: str) -> str:
 
 
 def load_json() -> dict:
-    with open("chords.json", "r") as file:
+    FILE_NAME = "chords.json"
+    path = None
+    if _file_exist(FILE_NAME):
+        path = FILE_NAME
+    else:
+        tmp = config_manager.find_config_file(FILE_NAME)
+        if _file_exist(tmp):
+            path = tmp
+
+    if not path:
+        return {"chords": []}
+
+    with open(path, "r") as file:
         data = json.load(file)
+
     return data
 
 
 def load_chips():
-    with open("chips.toml", "rb") as file:
+
+    FILE_NAME = "chips.toml"
+
+    path = None
+    if _file_exist(FILE_NAME):
+        path = FILE_NAME
+    else:
+        tmp = config_manager.find_config_file(FILE_NAME)
+        if _file_exist(tmp):
+            path = tmp
+
+    if not path:
+        path = ConfigManager("fuzzy_chips").find_config_file("config.toml")
+
+    if not path:
+        print("could not find any chips")
+        return
+
+    with open(path, "rb") as file:
         data = tomllib.load(file)
+
     out = {}
     chips: dict[str, str] = data["chips"]
 

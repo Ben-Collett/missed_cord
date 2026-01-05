@@ -2,9 +2,12 @@ import tomllib
 import os
 from utils import uncapitalize
 from duration import Duration
-from platform_wrapper import Platform, FILE_NAME
 from chording_modes import ChordingModes
 from logger import log_warning
+from my_config_manager import config_manager
+from constants import FILE_NAME
+
+
 from pathlib import Path
 
 
@@ -23,20 +26,12 @@ def safe_get_map(m, *args, default=None):
     return m
 
 
-def get_config_path(pl=Platform()) -> Path | None:
+def get_config_path() -> Path:
     if Path(FILE_NAME).is_file():
         return Path(FILE_NAME)
 
-    path = None
-    if pl.on_linux:
-        path = pl.linux_config_path
-    if pl.on_windows:
-        path = pl.windows_config_path
-    if pl.on_mac:
-        path = pl.macos_config_path
-
+    path = config_manager.find_config_file(FILE_NAME)
     print(path)
-    print(path.is_file())
     if path and path.is_file():
         return path
 
@@ -136,6 +131,7 @@ class Config:
         return f"{self.__class__.__name__} {{\n{lines}\n}}"
 
 
+print(get_config_path())
 current_config = Config(read_config(get_config_path()))
 
 if __name__ == "__main__":
