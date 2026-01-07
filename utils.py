@@ -5,11 +5,6 @@ from config_manager import ConfigManager
 from my_config_manager import config_manager
 
 
-class ValueWrapper:
-    def __init__(self, value):
-        self.value = value
-
-
 def _file_exist(path):
     return os.path.exists(path)
 

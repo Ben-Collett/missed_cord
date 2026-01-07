@@ -1,6 +1,5 @@
 import platform as _platform
 import os as _os
-import pwd as _pwd
 from pathlib import Path
 
 
@@ -106,6 +105,7 @@ class ConfigManager:
 
         if sudo_uid:
             # Script was run via sudo → use original user's home
+            import pwd as _pwd
             pw = _pwd.getpwuid(int(sudo_uid))
             home = Path(pw.pw_dir)
         else:

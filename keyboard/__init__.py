@@ -6,6 +6,7 @@ import platform as _platform
 from ._canonical_names import all_modifiers, sided_modifiers, normalize_name
 from ._generic import GenericListener as _GenericListener
 from ._keyboard_event import KEY_DOWN, KEY_UP, KeyboardEvent
+from ._windows_synthetic_modes import WindowsSyntheticModes
 import warnings
 import time as _time
 from enum import Enum
@@ -265,6 +266,10 @@ def is_modifier(key):
 
 _pressed_events_lock = _Lock()
 _pressed_events = {}
+
+_virtually_pressed_events_lock = _Lock()
+_virtually_pressed_events: set[int] = set()
+
 _physically_pressed_keys = _pressed_events
 _logically_pressed_keys = {}
 
@@ -339,7 +344,7 @@ class _KeyboardListener(_GenericListener):
 
         return event.scan_code or (event.name and event.name != 'unknown')
 
-    def direct_callback(self, event):
+    def direct_callback(self, event: KeyboardEvent):
         """
         This function is called for every OS keyboard event and decides if the
         event should be blocked or not, and passes a copy of the event to
@@ -425,7 +430,7 @@ _listener = None
 _initialized = False
 
 
-def init(linux_collision_safety_mode=None):
+def init(linux_collision_safety_mode=None, windows_synetic_mode: WindowsSyntheticModes = WindowsSyntheticModes.FAKE):
     global _os_keyboard, _listener, _initialized
 
     if _initialized:
@@ -433,6 +438,7 @@ def init(linux_collision_safety_mode=None):
 
     if _platform.system() == 'Windows':
         from . import _winkeyboard as keyboard
+        keyboard.synthetic_mode = windows_synetic_mode
     elif _platform.system() == 'Linux':
         from . import _nixkeyboard as keyboard
     elif _platform.system() == 'Darwin':
@@ -467,6 +473,11 @@ def _get_listener():
     if not _listener:
         init()
     return _listener
+
+
+def set_windows_synthetic_mode(mode: WindowsSyntheticModes):
+    if _platform == "Windows":
+        _os_keyboard.synthetic_mode = mode
 
 
 def key_to_scan_codes(key, error_if_missing=True):
@@ -557,12 +568,17 @@ def send(hotkey, do_press=True, do_release=True):
     parsed = parse_hotkey(hotkey)
     for step in parsed:
         if do_press:
-            for scan_codes in step:
-                _get_os_keyboard().press(scan_codes[0])
+            with _virtually_pressed_events_lock:
+                for scan_codes in step:
+                    _virtually_pressed_events.add(scan_codes[0])
+                    _get_os_keyboard().press(scan_codes[0])
 
         if do_release:
-            for scan_codes in reversed(step):
-                _get_os_keyboard().release(scan_codes[0])
+            with _virtually_pressed_events_lock:
+                for scan_codes in reversed(step):
+                    if scan_codes[0] in _virtually_pressed_events:
+                        _virtually_pressed_events.remove(scan_codes[0])
+                    _get_os_keyboard().release(scan_codes[0])
 
 
 def press(hotkey):
@@ -995,8 +1011,16 @@ def stash_state():
     the list. Pairs well with `restore_state` and `restore_modifiers`.
     """
     # TODO: stash caps lock / numlock /scrollock state.
-    with _pressed_events_lock:
-        state = sorted(_pressed_events)
+
+    # only consider virtually down keys on linux
+    # because which keyboard an event comes from is important on linux
+    # not sure about macos though.
+    if _platform.system() == "Linux":
+        with _virtually_pressed_events_lock:
+            state = sorted(_virtually_pressed_events)
+    else:
+        with _pressed_events_lock:
+            state = sorted(_pressed_events)
     for scan_code in state:
         _get_os_keyboard().release(scan_code)
     return state
@@ -1046,6 +1070,9 @@ def write(text, delay=0, restore_state_after=True, exact=None):
     alt+codepoint or special events). If None, uses platform-specific suggested
     value.
     """
+
+    # listener needs to be started to write on linux
+    _get_listener().start_if_necessary()
     if exact is None:
         exact = _platform.system() == 'Windows'
 

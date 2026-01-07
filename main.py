@@ -7,6 +7,7 @@ from my_key_event import MyKeyEvent, TERMINATE_EVENT
 import threading
 import keyboard
 import platform
+keyboard.init(windows_synetic_mode=keyboard.WindowsSyntheticModes.REAL)
 # Start the subprocess
 # `text=True` gives you strings instead of bytes
 # `bufsize=1` + `universal_newlines=True` ensures line-buffered reading
