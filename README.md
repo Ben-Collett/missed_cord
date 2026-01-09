@@ -1,6 +1,6 @@
 # Missed Cord
 
-A Linux-only program designed to work alongside a Charachorder keyboard when practicing. It monitors your typing and sends a notification when you miss an opportunity to use a chord shortcut and type the text manually instead.
+A Windows/Linux program designed to work alongside a Charachorder keyboard when practicing. It monitors your typing and sends a notification when you miss an opportunity to use a chord shortcut and type the text manually instead.
 
 ## Overview
 
@@ -30,14 +30,14 @@ This project has no affilination with charachorder as a company. This project is
 sudo apt-get install make gcc libxkbcommon-dev python3-evdev libnotify dunst
 ```
 
-2. Clone or download this repository
+1. Clone or download this repository
 
-3. Build the C code:
+1. Build the C code:
 ```bash
 make
 ```
 
-4. Export your Charachorder chord library:
+1. Export your Charachorder chord library:
    - Open the Charachorder Manager application
    - Export your chord library for backup
    - Copy the exported file to the project directory
@@ -52,14 +52,14 @@ make
 make
 ```
 
-2. Run the program:
+1. Run the program:
 ```bash
 python main.py
 ```
 
-3. When prompted, enter your admin password to grant the program permission to read keyboard input in the background on Wayland.
+1. When prompted, enter your admin password to grant the program permission to read keyboard input in the background on Wayland.
 
-4. The program will now monitor your typing and send notifications when you miss chord opportunities.
+1. The program will now monitor your typing and send notifications when you miss chord opportunities.
 
 ## How It Works
 
@@ -87,11 +87,11 @@ def display_message(chord: str, triggers: list[str]):
 
 1. **Charachorder Mode**: This program only works with Charachorder's default mode, **not** in "spurgging mode".
 
-2. **Detection Method**: The program relies on the trigger being deleted in order to detect a chord. This means the detection works by observing when the chord trigger is typed and then removed.
+1. **Detection Method**: The program relies on the trigger being deleted in order to detect a chord. This means the detection works by observing when the chord trigger is typed and then removed.
 
-3. **Edge Case**: If you type the trigger for a chord, then press backspace, and then type the text of the chord, the program will treat it as if you executed the chord. This is a known limitation.
+1. **Edge Case**: If you type the trigger for a chord, then press backspace, and then type the text of the chord, the program will treat it as if you executed the chord. This is a known limitation.
 
-4. **Linux Only**: Currently, this program only supports Linux systems.
+1. **Linux Only**: Currently, this program only supports Linux systems.
 
 ## D-Bus Requirement
 
