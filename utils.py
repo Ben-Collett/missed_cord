@@ -66,7 +66,7 @@ def load_chips():
             path = tmp
 
     if not path:
-        path = ConfigManager("fuzzy_chip").find_config_file("config.toml")
+        path = ConfigManager("fuzzy_chips").find_config_file("config.toml")
 
     if not path:
         print("could not find any chips")

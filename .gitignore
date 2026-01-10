@@ -1,5 +1,1 @@
-# Ignore build artifacts
-*.so
-*.o
-
 __pycache__/
