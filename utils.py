@@ -79,7 +79,8 @@ def load_chips():
     chips: dict[str, str] = data["chips"]
 
     for key, val in chips.items():
-        out[frozenset(key)] = val
+        if isinstance(val, str):
+            out[frozenset(key)] = val
 
     return out
 
